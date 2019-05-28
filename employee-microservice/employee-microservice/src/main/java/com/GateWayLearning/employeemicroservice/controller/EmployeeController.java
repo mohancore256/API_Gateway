@@ -64,7 +64,7 @@ public class EmployeeController {
 		Optional<Employee> employeeResponse = employeeService.getEmployee(employeeId);
 		if (null != employeeResponse) {
 			
-			RestTemplate restTemplate = new RestTemplate();
+			RestTemplate restTemplate = new RestTemplate(); //we can also autowire this
 			
 			ResponseEntity<Map<String, List<Department>>> deptResponseEntity = restTemplate.exchange(
 					"http://localhost:8083/department/department/getAll", HttpMethod.GET, null,
@@ -127,6 +127,39 @@ public class EmployeeController {
 		ResponseEntity<?> response;
 		map.put("All emp details ", employeeService.getAllEmployee());
 		response = new ResponseEntity<>(map, HttpStatus.OK);
+		return response;
+	}
+	
+	@GetMapping(value = "/getAny/{keyword}")
+	@ApiOperation("Get the Employee")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "OK", response = ResponseEntity.class) })
+	public ResponseEntity<?> getEmployeeByNameOrId(@PathVariable String keyword) {
+		ModelMap map = new ModelMap();
+		ResponseEntity<?> response;
+		Optional<Employee> employeeResponse = employeeService.getEmployeeByNameOrId(keyword);
+		if (null != employeeResponse) {
+			
+			RestTemplate restTemplate = new RestTemplate(); //we can also autowired this
+			
+			ResponseEntity<Map<String, List<Department>>> deptResponseEntity = restTemplate.exchange(
+					"http://localhost:8083/department/department/getAll", HttpMethod.GET, null,
+					new ParameterizedTypeReference<Map<String, List<Department>>>() {}
+					);
+			if (null != deptResponseEntity) {
+				Map<String, List<Department>> deptResponseMap = deptResponseEntity.getBody();
+				if (null != deptResponseMap && deptResponseMap.containsKey("All Department detail  ")) {
+					List<Department> deptList = deptResponseMap.get("All Department detail  ");
+					employeeResponse.get().setDepartments(deptList);
+				}
+			}
+		}
+		if (employeeResponse != null) {
+			map.put("Employee Detail Requested", employeeResponse);
+			response = new ResponseEntity<>(map, HttpStatus.OK);
+		} else {
+			map.put("Employee Not Saved", "Bad Request");
+			response = new ResponseEntity<>(map, HttpStatus.NOT_FOUND);
+		}
 		return response;
 	}
 }

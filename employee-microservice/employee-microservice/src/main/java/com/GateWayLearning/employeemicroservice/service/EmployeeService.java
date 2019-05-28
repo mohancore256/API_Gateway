@@ -34,4 +34,8 @@ public class EmployeeService {
 	public List<Employee> getAllEmployee(){
 		return employeeRepo.findAll();
 	}
+	
+	public Optional<Employee> getEmployeeByNameOrId(String keyword){
+		return employeeRepo.getEmployeeByNameOrId(keyword, keyword);
+	}
 }
